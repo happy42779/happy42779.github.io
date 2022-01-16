@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.0.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.svg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.svg">
+  <link rel="mask-icon" href="/images/trigram-logo-128.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.4/css/all.min.css" integrity="sha256-mUZM63G8m73Mcidfrv5E+Y61y7a12O5mW4ezU3bxqW4=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"happy42779.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.9.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="https://cdn.jsdelivr.net/npm/hexo-theme-next@8.9.0/source/js/config.min.js"></script>
+<meta name="description" content="介绍acme.sh 是一个非常好用强大的用来获取免费的SSL证书的脚本。该脚本获取到证书后90天有效，90天后需要重新申请，然后部署。这里记录下操作过程以及中间遇到的几个问题。 安装">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用acme.sh为网站申请SSL证书">
+<meta property="og:url" content="https://happy42779.github.io/linux/%E4%BD%BF%E7%94%A8acme-sh%E4%B8%BA%E7%BD%91%E7%AB%99%E7%94%B3%E8%AF%B7SSL%E8%AF%81%E4%B9%A6/index.html">
+<meta property="og:site_name" content="大器晚成">
+<meta property="og:description" content="介绍acme.sh 是一个非常好用强大的用来获取免费的SSL证书的脚本。该脚本获取到证书后90天有效，90天后需要重新申请，然后部署。这里记录下操作过程以及中间遇到的几个问题。 安装">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-08-31T04:21:14.000Z">
+<meta property="article:modified_time" content="2022-01-16T11:02:45.898Z">
+<meta property="article:author" content="Ian">
+<meta property="article:tag" content="acme.sh">
+<meta property="article:tag" content="SSL">
+<meta property="article:tag" content="nginx">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://happy42779.github.io/linux/%E4%BD%BF%E7%94%A8acme-sh%E4%B8%BA%E7%BD%91%E7%AB%99%E7%94%B3%E8%AF%B7SSL%E8%AF%81%E4%B9%A6/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://happy42779.github.io/linux/%E4%BD%BF%E7%94%A8acme-sh%E4%B8%BA%E7%BD%91%E7%AB%99%E7%94%B3%E8%AF%B7SSL%E8%AF%81%E4%B9%A6/","path":"linux/使用acme-sh为网站申请SSL证书/","title":"使用acme.sh为网站申请SSL证书"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>使用acme.sh为网站申请SSL证书 | 大器晚成</title>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">大器晚成</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">潛龍勿用</p>
+      <img class="custom-logo-image" src="/images/trigram-logo-128.svg" alt="大器晚成">
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%8B%E7%BB%8D"><span class="nav-number">1.</span> <span class="nav-text">介绍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%89%E8%A3%85"><span class="nav-number">2.</span> <span class="nav-text">安装</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%A2%81%E5%8F%91%E8%AF%81%E4%B9%A6"><span class="nav-number">3.</span> <span class="nav-text">颁发证书</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%89%E8%A3%85%E8%AF%81%E4%B9%A6"><span class="nav-number">4.</span> <span class="nav-text">安装证书</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%87%AA%E5%8A%A8%E6%9B%B4%E6%96%B0"><span class="nav-number">5.</span> <span class="nav-text">自动更新</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Ian"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Ian</p>
+  <div class="site-description" itemprop="description">Great talent takes long to mature</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">7</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">17</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/happy42779" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;happy42779" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+<div id=163MusicPlayer>
+    <iframe frameborder="no" border="0" marginwidth="0" marginheight="0" width=280 height=86 src="//music.163.com/outchain/player?type=2&id=29572578&auto=1&height=66"></iframe>
+    </iframe>
+</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://happy42779.github.io/linux/%E4%BD%BF%E7%94%A8acme-sh%E4%B8%BA%E7%BD%91%E7%AB%99%E7%94%B3%E8%AF%B7SSL%E8%AF%81%E4%B9%A6/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Ian">
+      <meta itemprop="description" content="Great talent takes long to mature">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="大器晚成">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          使用acme.sh为网站申请SSL证书
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2021-08-31 12:21:14" itemprop="dateCreated datePublished" datetime="2021-08-31T12:21:14+08:00">2021-08-31</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2022-01-16 19:02:45" itemprop="dateModified" datetime="2022-01-16T19:02:45+08:00">2022-01-16</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/linux/" itemprop="url" rel="index"><span itemprop="name">linux</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p><a target="_blank" rel="noopener" href="https://github.com/acmesh-official/acme.sh">acme.sh</a> 是一个非常好用强大的用来获取免费的SSL证书的脚本。该脚本获取到证书后90天有效，90天后需要重新申请，然后部署。这里记录下操作过程以及中间遇到的几个问题。</p>
+<h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><p>安装方式有2种：</p>
+<ol>
+<li>Install Online</li>
+<li>Install from git</li>
+</ol>
+<p>这里我们选择第1种方式，操作简单，方便。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl https://get.acme.sh | sh <span class="comment"># 下载并安装</span></span><br></pre></td></tr></table></figure>
+
+<p>脚本执行完以后，会在用户的根目录创建一个 <code>.acme.sh</code> 文件夹，并且系统应该已经为你创建了一个 alias：<code>amce.sh</code>。</p>
+<h2 id="颁发证书"><a href="#颁发证书" class="headerlink" title="颁发证书"></a>颁发证书</h2><p>首先我们需要办法证书，然后在将证书安装到 nginx 或者其他需要用到证书的程序指定的目录中。<br>以本站为例：</p>
+<p><code>acme.sh --issue -d www.blog.inchristounumsumus.top --standalone  --server letsencrypt</code></p>
+<ul>
+<li><p>模式<br>这里我们指定为standalone模式。<a target="_blank" rel="noopener" href="https://github.com/acmesh-official/acme.sh/wiki/Deploy-ssl-certs-to-nginx">这里</a>有其他模式的教程，请酌情食用。</p>
+<blockquote>
+<p>  推荐使用 <a target="_blank" rel="noopener" href="https://github.com/acmesh-official/acme.sh/wiki/How-to-issue-a-cert">webroot</a> 模式。</p>
+</blockquote>
+</li>
+<li><p>服务器<br>我们使用 <code>letsencrypt</code> 提供的服务，这也是以前默认的证书颁发机构。最近已经将默认的颁发机构换成了 <a target="_blank" rel="noopener" href="https://github.com/acmesh-official/acme.sh/wiki/Change-default-CA-to-ZeroSSL">ZeroSSL</a>。我没有使用 ZeroSSL 的原因是需要注册账号，而且已经有一些服务器在用老的了。以后有时间再换吧。</p>
+</li>
+</ul>
+<h2 id="安装证书"><a href="#安装证书" class="headerlink" title="安装证书"></a>安装证书</h2><p><code>acme.sh --install-cert -d www.blog.inchristounumsumus.top --fullchain-file /xxx/xxx/blog.pem --key-file /xxx/xxx/blog.key --reloadcmd &quot;systemctl restart nginx&quot;</code></p>
+<ul>
+<li><strong>reloadcmd</strong><br>这里的 reloadcmd 由于是 nginx 在读取SSL证书，所以需要重启nginx。这个参数的作用是在下次系统自动更新的时候系统也会根据你这一次使用的命令种的目录参数进行证书安装。让新的证书生效就需要重启 nginx 服务。多条命令可以使用 <code>&amp;&amp;</code> 进行拼接。</li>
+</ul>
+<h2 id="自动更新"><a href="#自动更新" class="headerlink" title="自动更新"></a>自动更新</h2><p>这个问题一直困扰了我很久，没搞明白我需要做什么才能让证书自动更新，然后这个程序又是怎么做到可以自动更新的呢？</p>
+<p>其实在我们使用上面的第1种方式安装完成后，就已经为我们自动添加了一个定时脚本到系统中。使用 <code>crontab -e</code> 可以进行验证查看。（这也是我令我困惑的原因之一，以前参照这个做法做了以后，我的第一反应是到 <code>/etc/crontab</code> 里面去找相关的命令，这里面是没有我们需要的命令的。）</p>
+<p>此时我们可以看到一条类似这样的命令 <code>31 0 * * * &quot;/root/.acme.sh&quot;/acme.sh --cron --home &quot;/root/.acme.sh&quot; &gt; /dev/null</code>。这条命令是一个系统定时任务： 每天 0 点 31 分 执行 <code>acme.sh --cron</code> 这条命令。</p>
+<p>这条命令的作用是每天检查证书的有效期还剩下多久，默认每<code>60</code>天进行更新。如果需要更新了，他会自动执行你第一次颁发证书时使用的命令进行更新，然后根据你第一次安装证书时使用的命令再运行一次。</p>
+<p>这里有一个问题，在颁发证书的时候是需要通过 80 端口进行验证，而默认情况下 80 端口是被 nginx 使用的。正是这个问题之前困扰了我很久，让我一直不明白为什么我设置的自动更新都不能更新。</p>
+<blockquote>
+<p>  让 nginx 不使用 80 端口</p>
+</blockquote>
+<ul>
+<li>检查你自己的 nignx 配置文件，如果有监听 80 端口，则注释掉，我们申请证书了，就只使用 443 端口也没问题！</li>
+<li>更改默认的配置文件，有时候 nginx 目录下有 <code>sites-enables</code> <code>sites-available</code>两个文件夹，每个文件夹里面都有一个 default 文件（两个应该是同一文件，通过 <code>ln</code> 链接的）。编辑这个文件，注释掉 <code>listen    80;</code> 这一行。然后 <code>systemctl restart nginx</code>重启 nginx。</li>
+<li>验证端口占用：<code>ss -anp | grep 80</code> 此时屏幕上的输出结果中就没有80端口了。这样当 acme.sh 需要自动更新证书的时候就不会出错了。</li>
+<li>手动验证结果： 如果你想确保万无一失，可以使用 <code>acme.sh --cron --force</code> 这个命令来强制现在更新。</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/acme-sh/" rel="tag"># acme.sh</a>
+              <a href="/tags/SSL/" rel="tag"># SSL</a>
+              <a href="/tags/nginx/" rel="tag"># nginx</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/networking/debian-as-router2/" rel="prev" title="使用Debian路由及拨号2">
+                  <i class="fa fa-chevron-left"></i> 使用Debian路由及拨号2
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/networking/tools/%E8%8B%B9%E6%9E%9C%E6%89%8B%E6%9C%BA%E8%B0%83%E7%94%A8%E5%B1%80%E5%9F%9F%E7%BD%91aria2%E6%9C%8D%E5%8A%A1%E8%BF%9B%E8%A1%8C%E4%B8%8B%E8%BD%BD/" rel="next" title="苹果手机调用局域网aria2服务进行下载">
+                  苹果手机调用局域网aria2服务进行下载 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Ian</span>
+</div><script color="0,0,255" opacity="0.5" zIndex="-1" count="99" src="https://cdn.jsdelivr.net/npm/canvas-nest.js@1/dist/canvas-nest.js"></script>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/hexo-theme-next@8.9.0/source/js/comments.min.js"></script><script src="https://cdn.jsdelivr.net/npm/hexo-theme-next@8.9.0/source/js/utils.min.js"></script><script src="https://cdn.jsdelivr.net/npm/hexo-theme-next@8.9.0/source/js/motion.min.js"></script><script src="https://cdn.jsdelivr.net/npm/hexo-theme-next@8.9.0/source/js/next-boot.min.js"></script>
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

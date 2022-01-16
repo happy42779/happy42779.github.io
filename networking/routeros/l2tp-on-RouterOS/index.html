@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.0.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.svg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.svg">
+  <link rel="mask-icon" href="/images/trigram-logo-128.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.4/css/all.min.css" integrity="sha256-mUZM63G8m73Mcidfrv5E+Y61y7a12O5mW4ezU3bxqW4=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"happy42779.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.9.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="https://cdn.jsdelivr.net/npm/hexo-theme-next@8.9.0/source/js/config.min.js"></script>
+<meta name="description" content="前言在继之前的xray系列之后，想尝试用routeros搭建隧道然后分流的方式，借机学习一下Routeros。于是捡起来了去年20刀年付但基本没用过的小鸡来做测试。（如何在vps上安装Routeros后面另起一篇）首先尝试了使用wireguard建立隧道，想试试wireguard的速度具体如何。于是来来回回看教程，测试，该参数，弄了好几天之后还是不甘心地换了个思路尝试l2tp（想着可能是 rout">
+<meta property="og:type" content="article">
+<meta property="og:title" content="在RouterOS上搭建L2TP">
+<meta property="og:url" content="https://happy42779.github.io/networking/routeros/l2tp-on-RouterOS/index.html">
+<meta property="og:site_name" content="大器晚成">
+<meta property="og:description" content="前言在继之前的xray系列之后，想尝试用routeros搭建隧道然后分流的方式，借机学习一下Routeros。于是捡起来了去年20刀年付但基本没用过的小鸡来做测试。（如何在vps上安装Routeros后面另起一篇）首先尝试了使用wireguard建立隧道，想试试wireguard的速度具体如何。于是来来回回看教程，测试，该参数，弄了好几天之后还是不甘心地换了个思路尝试l2tp（想着可能是 rout">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-12-05T10:01:47.000Z">
+<meta property="article:modified_time" content="2022-01-16T11:02:45.874Z">
+<meta property="article:author" content="Ian">
+<meta property="article:tag" content="Routeros">
+<meta property="article:tag" content="l2tp">
+<meta property="article:tag" content="PBR(policy based routing)">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://happy42779.github.io/networking/routeros/l2tp-on-RouterOS/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://happy42779.github.io/networking/routeros/l2tp-on-RouterOS/","path":"networking/routeros/l2tp-on-RouterOS/","title":"在RouterOS上搭建L2TP"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>在RouterOS上搭建L2TP | 大器晚成</title>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">大器晚成</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">潛龍勿用</p>
+      <img class="custom-logo-image" src="/images/trigram-logo-128.svg" alt="大器晚成">
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%87%86%E5%A4%87%E5%B7%A5%E4%BD%9C"><span class="nav-number">2.</span> <span class="nav-text">准备工作</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%90%AD%E5%BB%BAl2tp"><span class="nav-number">3.</span> <span class="nav-text">搭建l2tp</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%86%E6%B5%81"><span class="nav-number">4.</span> <span class="nav-text">分流</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#layer7-protocol"><span class="nav-number"></span> <span class="nav-text">layer7 protocol</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%AF%E4%BB%A5%E6%A0%B9%E6%8D%AE%E8%87%AA%E5%B7%B1%E7%9A%84%E9%9C%80%E8%A6%81%E8%BF%9B%E8%A1%8C%E8%B0%83%E6%95%B4%EF%BC%8C%E6%9C%80%E5%A5%BD%E4%B8%8D%E8%A6%81%E5%A4%9A%EF%BC%8C%E8%B6%8A%E5%A4%9A%E5%AF%B9%E8%AE%BE%E5%A4%87%E7%9A%84%E8%B4%9F%E6%8B%85%E8%B6%8A%E5%A4%A7%E3%80%82%E8%BF%99%E9%87%8C%E7%9A%84%E5%9F%9F%E5%90%8D%E6%98%AF%E5%8F%82%E8%80%83%E5%A4%A7%E4%BD%AC%E7%94%A8%E7%9A%84%E5%88%97%E8%A1%A8%E3%80%82"><span class="nav-number"></span> <span class="nav-text">可以根据自己的需要进行调整，最好不要多，越多对设备的负担越大。这里的域名是参考大佬用的列表。</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%85%B6%E5%AE%9E%E6%88%91%E5%8F%AA%E7%94%A8%E5%BE%97%E5%88%B0%E9%87%8C%E9%9D%A2%E7%9A%84%E5%BE%88%E5%B0%8F%E4%B8%80%E9%83%A8%E5%88%86%EF%BC%8C%E5%A6%82-google%EF%BC%8C-github%EF%BC%8C-youtube-%E7%AD%89%E3%80%82"><span class="nav-number"></span> <span class="nav-text">其实我只用得到里面的很小一部分，如 google， github， youtube 等。</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#mark-dns"><span class="nav-number"></span> <span class="nav-text">mark dns</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#dst-ant"><span class="nav-number"></span> <span class="nav-text">dst-ant</span></a></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Ian"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Ian</p>
+  <div class="site-description" itemprop="description">Great talent takes long to mature</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">7</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">17</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/happy42779" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;happy42779" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+<div id=163MusicPlayer>
+    <iframe frameborder="no" border="0" marginwidth="0" marginheight="0" width=280 height=86 src="//music.163.com/outchain/player?type=2&id=29572578&auto=1&height=66"></iframe>
+    </iframe>
+</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://happy42779.github.io/networking/routeros/l2tp-on-RouterOS/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Ian">
+      <meta itemprop="description" content="Great talent takes long to mature">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="大器晚成">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          在RouterOS上搭建L2TP
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2021-12-05 18:01:47" itemprop="dateCreated datePublished" datetime="2021-12-05T18:01:47+08:00">2021-12-05</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2022-01-16 19:02:45" itemprop="dateModified" datetime="2022-01-16T19:02:45+08:00">2022-01-16</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/networking/" itemprop="url" rel="index"><span itemprop="name">networking</span></a>
+        </span>
+          ，
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/networking/routeros/" itemprop="url" rel="index"><span itemprop="name">routeros</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>在继之前的xray系列之后，想尝试用routeros搭建隧道然后分流的方式，借机学习一下Routeros。于是捡起来了去年20刀年付但基本没用过的小鸡来做测试。（如何在vps上安装Routeros后面另起一篇）<br>首先尝试了使用wireguard建立隧道，想试试wireguard的速度具体如何。于是来来回回看教程，测试，该参数，弄了好几天之后还是不甘心地换了个思路尝试l2tp（想着可能是 routeros 7 测试版的问题，又或者是wireguard的问题）。<br>然后就有了这篇文章，同样是在经历了多次的尝试摸索后找到了问题所在，然后解决了问题。同时，wireguard遇到的问题也迎刃而解了！ Hooray！</p>
+<pre><code>&gt; 文章中不可避免地省略了一些步骤，遇到不清楚的情况应该善用搜索工具！
+</code></pre>
+<h2 id="准备工作"><a href="#准备工作" class="headerlink" title="准备工作"></a>准备工作</h2><p>一台本地routeros，本地ISP是电信，一台远程routeros，美西。</p>
+<h2 id="搭建l2tp"><a href="#搭建l2tp" class="headerlink" title="搭建l2tp"></a>搭建l2tp</h2><ul>
+<li>远端routeros<br>  l2tp 配置如下：  <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"># profile</span><br><span class="line">/ppp profile add local-address=10.0.0.1 name=L2TP remote-address=L2TP use-ipv6=no</span><br><span class="line"># l2tp-server</span><br><span class="line">/interface l2tp-server server set default-profile=L2TP enabled=yes mrru=1500 use-ipsec=yes</span><br><span class="line"># 客户端对端的ip地址我这里指定成了一个地址池 L2TP</span><br><span class="line"># 这个指定地址池实际上是为了移动端设置的，但是在本地ros上我手动指定了 `10.0.0.2`，因为设置规则的时候要用到这个地址</span><br><span class="line">/ip pool add comment=&quot;L2TP pool&quot; name=L2TP ranges=10.0.0.3-10.0.0.6</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>注意这里的脚本不包含用户和密码的信息，这个需要自己去手动添加。</p>
+</blockquote>
+</li>
+</ul>
+<ul>
+<li>本地routeros  <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"># l2tp-client</span><br><span class="line"># xxx 是远程的公网ip地址</span><br><span class="line">/interface l2tp-client add connect-to=xx.xx.xx.xxx disabled=no name=l2tp-out-SJ user=Routeros</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>同服务端，这里没有任何客用户密码的信息，需要手动添加在服务器端设置的用户，密码来进行验证。</p>
+</blockquote>
+</li>
+<li>测试<br>  连接成功后，就可以成功ping通对端的ip了：  <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">&gt; ping 10.0.0.1</span><br><span class="line">SEQ HOST                                     SIZE TTL TIME  STATUS                                              </span><br><span class="line">    0 10.0.0.1                                   56  64 194ms</span><br><span class="line">    1 10.0.0.1                                   56  64 192ms</span><br><span class="line">    2 10.0.0.1                                   56  64 195ms</span><br><span class="line"></span><br><span class="line">&gt; ping 10.0.0.2 </span><br><span class="line">SEQ HOST                                     SIZE TTL TIME   STATUS                                                                                     </span><br><span class="line">    0 10.0.0.2                                   56  64 195ms544us</span><br><span class="line">    1 10.0.0.2                                   56  64 193ms806us</span><br><span class="line">    2 10.0.0.2                                   56  64 198ms102us</span><br><span class="line">    3 10.0.0.2                                   56  64 191ms960us</span><br></pre></td></tr></table></figure>
+<h2 id="分流"><a href="#分流" class="headerlink" title="分流"></a>分流</h2>  这里分流并没有像之前一样用到旁路由。所以分流的具体效果也没有之前的那个灵活。这里利用 <code>/ip/firewall/Address lists 以及 Layer7 Protocols</code> 来进行分流。指定address-list， 然后利用这个list对流量进行标记。通常是导入中国的ip地址段，然后再标记不属于这些地址段的流量，将这些流量导入到隧道中去。具体的步骤如下：</li>
+<li>导入ip  <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">/tool fetch url=http://www.iwik.org/ipcountry/mikrotik/CN</span><br><span class="line">/import file-name=CN</span><br></pre></td></tr></table></figure></li>
+<li>指定哪些ip被代理  <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/ip firewall address-list add list=proxy address=192.168.1.0/24</span><br></pre></td></tr></table></figure></li>
+<li>标记流量  <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">    /ip firewall mangle</span><br><span class="line">    add action=mark-routing chain=prerouting comment=&quot;L2TP marking&quot; dst-address-list=!cnip dst-port=!53 \</span><br><span class="line">        new-routing-mark=L2TP passthrough=yes protocol=tcp src-address-list=proxy</span><br><span class="line">    add action=mark-routing chain=prerouting comment=&quot;L2TP marking&quot; dst-address-list=!cnip dst-port=!53 \</span><br><span class="line">        new-routing-mark=L2TP passthrough=yes protocol=udp src-address-list=proxy</span><br><span class="line">+ 对被gfw屏蔽的网站的域名解析进行特殊处理</span><br><span class="line">    上面在标记中排除了53端口，这是因为我们希望用隧道远端服务器去解析某些域名，所以我们这里要处理先标记dns流量，然后再做dst-nat，在这之前我们要导入一个gfwlist</span><br></pre></td></tr></table></figure>
+<h1 id="layer7-protocol"><a href="#layer7-protocol" class="headerlink" title="layer7 protocol"></a>layer7 protocol</h1><h1 id="可以根据自己的需要进行调整，最好不要多，越多对设备的负担越大。这里的域名是参考大佬用的列表。"><a href="#可以根据自己的需要进行调整，最好不要多，越多对设备的负担越大。这里的域名是参考大佬用的列表。" class="headerlink" title="可以根据自己的需要进行调整，最好不要多，越多对设备的负担越大。这里的域名是参考大佬用的列表。"></a>可以根据自己的需要进行调整，最好不要多，越多对设备的负担越大。这里的域名是参考大佬用的列表。</h1><h1 id="其实我只用得到里面的很小一部分，如-google，-github，-youtube-等。"><a href="#其实我只用得到里面的很小一部分，如-google，-github，-youtube-等。" class="headerlink" title="其实我只用得到里面的很小一部分，如 google， github， youtube 等。"></a>其实我只用得到里面的很小一部分，如 google， github， youtube 等。</h1>  /ip firewall layer7-protocol<br>  add name=gfwlist regexp=”github.com|go.com|google-analytics.com|google.co.jp|google.com.hk|google.com.sg|google.com.tw|google.com.uk|google.com|googleadservices.com|googleapis.com|googlecode.com|googledomains.com|googledrive.com|googleearth.com|googlehosted.com|googlelabs.com|googlemail.com|googlepages.com|googleplus.com|googlesile.com|googlesource.com|googlesyndication.com|googletagmanager.com|googletagservices.com|googleusercontent.com|googlevideo.com|gstatic.com|wireguard.com|bit.ly|github.io|mikrotik.com|udemy.com|openvpn.net|free-codecs.com|twitter.com|videoamp.com|vimeo.com|whatsapp.com|whatsapp.net|wikimedia.org|wikipedia.com|wordpress.com|yahoo.co.jp|yahoo.com|youtu.be|youtube.com|telegram.org|instagram.com|bandwagonhost.com|reddit.com|githubusercontent.com|wikipedia.org|facebook.com”<h1 id="mark-dns"><a href="#mark-dns" class="headerlink" title="mark dns"></a>mark dns</h1>  /ip firewall mangle<br>  add action=mark-routing chain=prerouting comment=”dns marking” dst-port=53 layer7-proto<br>  new-routing-mark=DNS passthrough=yes protocol=udp src-address-list=proxy<h1 id="dst-ant"><a href="#dst-ant" class="headerlink" title="dst-ant"></a>dst-ant</h1>  /ip firewall nat<br>  add action=dst-nat chain=dstnat comment=dns layer7-protocol=gfwlist protocol=udp routing-mark=DNS <br>  to-addresses=10.0.0.1 to-ports=53  <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">+ 添加标记流量的nat</span><br><span class="line">    上面标记的要被代理的流量，需要将其做一个src-nat转换，然后跟据下面的静态路由出去</span><br></pre></td></tr></table></figure>
+  /ip firewall nat<br>  add action=src-nat chain=srcnat comment=l2tp dst-address-list=!cnip routing-mark=L2TP src-address-list=proxy <br>  to-addresses=10.0.0.2  <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">+ 根据标记添加静态路由</span><br><span class="line">    这里因为添加的也是默认路由而系统本身就已经有一条pppoe的默认路由了，所以需要把这条路由的路径设置为1，pppoe的路由设置成2</span><br></pre></td></tr></table></figure>
+  /ip route<br>  add check-gateway=ping distance=1 gateway=l2tp-out-SJ routing-mark=L2TP<br>  ```<br>  这样，这条路有的距离为1，但是这条路有还要额外匹配一个路由标记，所以所有走国内的流量就匹配到第二条由pppoe产生的默认路由上了。</li>
+<li>大功告成<br>  一切都正常了！ 对我常用的一些网站来说，已经可以很棒的满足我的要求了！ 贴张油管晚高峰的图。  </li>
+<li>填过的坑<ul>
+<li>dns 流量标记： 在之前尝试wireguard的时候，并没有深刻理解PBR (policy-based routing)，所以当时并没有标记dns的流量，而只是做了dst-nat，这就导致域名始终都没有被正确解析。</li>
+<li>dns 转发： 在标记了dns的流量后，做dst-nat的时候，在参考的视频里面，设置的是本地的隧道地址，而非远端的隧道地址，而这样做在我的设置中是不行的。初步理解是：</li>
+<li>静态dns：最初我以为是layer7-protocol导致的wireguard设置不成功，所以我尝试在dns中设置静态记录，使用远端进行解析 google， youtube，结果也能成功解析了。但是youtube却始终都无法播放视频，某一些网站的加载也有问题，其他国外网站的视频也都不能正常播放。后面请教群里的小伙伴，有人提到了是dns的问题，于是我就重新试了使用layer7-protocol的方式，并仔细检查本地以及远程的dns缓存来判断gfwlist是否成功由隧道对端进行解析。</li>
+<li>** 这里也留下一个问题，为什么用dns的静态条目指定dns进行解析会导致播放视频出问题呢？</li>
+<li>对知识的理解：急需加深对iptables表和链概念的理解，对nat以及路由的理解！！！</li>
+</ul>
+</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Routeros/" rel="tag"># Routeros</a>
+              <a href="/tags/l2tp/" rel="tag"># l2tp</a>
+              <a href="/tags/PBR-policy-based-routing/" rel="tag"># PBR(policy based routing)</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/networking/debian%E5%BC%80%E5%90%AFnfs%E6%9C%8D%E5%8A%A1/" rel="prev" title="debian开启nfs服务">
+                  <i class="fa fa-chevron-left"></i> debian开启nfs服务
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Ian</span>
+</div><script color="0,0,255" opacity="0.5" zIndex="-1" count="99" src="https://cdn.jsdelivr.net/npm/canvas-nest.js@1/dist/canvas-nest.js"></script>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/hexo-theme-next@8.9.0/source/js/comments.min.js"></script><script src="https://cdn.jsdelivr.net/npm/hexo-theme-next@8.9.0/source/js/utils.min.js"></script><script src="https://cdn.jsdelivr.net/npm/hexo-theme-next@8.9.0/source/js/motion.min.js"></script><script src="https://cdn.jsdelivr.net/npm/hexo-theme-next@8.9.0/source/js/next-boot.min.js"></script>
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

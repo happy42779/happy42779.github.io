@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.0.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.svg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.svg">
+  <link rel="mask-icon" href="/images/trigram-logo-128.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.4/css/all.min.css" integrity="sha256-mUZM63G8m73Mcidfrv5E+Y61y7a12O5mW4ezU3bxqW4=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"happy42779.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.9.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="https://cdn.jsdelivr.net/npm/hexo-theme-next@8.9.0/source/js/config.min.js"></script>
+<meta name="description" content="背景在尝试将hexo博客部署到个人的服务器上时，需要用将hexo生成的静态文件部署到服务器上，简单搜索了下之后比较好的一种方案是直接在服务器上搭建一个git仓库，然后使用hexo deploy来进行一键部署。 流程及原理">
+<meta property="og:type" content="article">
+<meta property="og:title" content="在linux服务器上搭建git repository">
+<meta property="og:url" content="https://happy42779.github.io/geek/git-repository-md/index.html">
+<meta property="og:site_name" content="大器晚成">
+<meta property="og:description" content="背景在尝试将hexo博客部署到个人的服务器上时，需要用将hexo生成的静态文件部署到服务器上，简单搜索了下之后比较好的一种方案是直接在服务器上搭建一个git仓库，然后使用hexo deploy来进行一键部署。 流程及原理">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-04-22T12:32:13.000Z">
+<meta property="article:modified_time" content="2022-01-16T11:02:45.848Z">
+<meta property="article:author" content="Ian">
+<meta property="article:tag" content="linux">
+<meta property="article:tag" content="geek">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://happy42779.github.io/geek/git-repository-md/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://happy42779.github.io/geek/git-repository-md/","path":"geek/git-repository-md/","title":"在linux服务器上搭建git repository"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>在linux服务器上搭建git repository | 大器晚成</title>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">大器晚成</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">潛龍勿用</p>
+      <img class="custom-logo-image" src="/images/trigram-logo-128.svg" alt="大器晚成">
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%83%8C%E6%99%AF"><span class="nav-number">1.</span> <span class="nav-text">背景</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B5%81%E7%A8%8B%E5%8F%8A%E5%8E%9F%E7%90%86"><span class="nav-number">2.</span> <span class="nav-text">流程及原理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B7%E4%BD%93%E6%AD%A5%E9%AA%A4"><span class="nav-number">3.</span> <span class="nav-text">具体步骤</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%9B%E5%BB%BA%E6%96%B0git%E7%94%A8%E6%88%B7"><span class="nav-number">3.1.</span> <span class="nav-text">创建新git用户</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%9B%E5%BB%BA%E4%BB%93%E5%BA%93"><span class="nav-number">3.2.</span> <span class="nav-text">创建仓库</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B7%BB%E5%8A%A0%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%85%AC%E9%92%A5"><span class="nav-number">3.3.</span> <span class="nav-text">添加客户端公钥</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B5%8B%E8%AF%95%E4%BB%93%E5%BA%93"><span class="nav-number">3.4.</span> <span class="nav-text">测试仓库</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%80%E5%90%8E"><span class="nav-number">4.</span> <span class="nav-text">最后</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E9%85%8D%E7%BD%AEnginx"><span class="nav-number">4.1.</span> <span class="nav-text">如何配置nginx</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%B8%A9%E8%BF%87%E7%9A%84%E5%9D%91"><span class="nav-number">4.2.</span> <span class="nav-text">踩过的坑</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Ian"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Ian</p>
+  <div class="site-description" itemprop="description">Great talent takes long to mature</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">7</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">17</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/happy42779" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;happy42779" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+<div id=163MusicPlayer>
+    <iframe frameborder="no" border="0" marginwidth="0" marginheight="0" width=280 height=86 src="//music.163.com/outchain/player?type=2&id=29572578&auto=1&height=66"></iframe>
+    </iframe>
+</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://happy42779.github.io/geek/git-repository-md/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Ian">
+      <meta itemprop="description" content="Great talent takes long to mature">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="大器晚成">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          在linux服务器上搭建git repository
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2021-04-22 20:32:13" itemprop="dateCreated datePublished" datetime="2021-04-22T20:32:13+08:00">2021-04-22</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2022-01-16 19:02:45" itemprop="dateModified" datetime="2022-01-16T19:02:45+08:00">2022-01-16</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/geek/" itemprop="url" rel="index"><span itemprop="name">geek</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>在尝试将hexo博客部署到个人的服务器上时，需要用将hexo生成的静态文件部署到服务器上，简单搜索了下之后比较好的一种方案是直接在服务器上搭建一个git仓库，然后使用<code>hexo deploy</code>来进行一键部署。</p>
+<h2 id="流程及原理"><a href="#流程及原理" class="headerlink" title="流程及原理"></a>流程及原理</h2><p>在编写完新的文章，调整及检查好后可以使用<code>hexo generate</code>来进行生成，生成的文件格式为html并且存放在public文件夹下，在用<code>hexo deploy</code>进行部署的时候系统会自动根据*_config.yml* 里的配置向服务器上传public下的静态文件。起初我以为上传到服务器的文件结构是像在本地一样的，但是上传到服务器的文件是不可见的（无法直接看到上传的文件目录及其下文件以及文件的内容），后来当我上传之后去服务器相应目录下找结果什么都没找到，然后尝试从远程<code>git clone</code>到本地又发现是正常的。这个问题好在git有一个很好的解决方案 — 使用git的hook可以来完成这个工作，需要用post-receive这一hook。</p>
+<h2 id="具体步骤"><a href="#具体步骤" class="headerlink" title="具体步骤"></a>具体步骤</h2><blockquote>
+<p>本文搭建使用的环境为Debian 10</p>
+</blockquote>
+<ol>
+<li><h3 id="创建新git用户"><a href="#创建新git用户" class="headerlink" title="创建新git用户"></a>创建新git用户</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># add user</span></span><br><span class="line"><span class="comment"># 下面的操作在我的系统上也自动创建了一个名为git的组</span></span><br><span class="line">useradd git</span><br><span class="line"><span class="comment"># 此时/home 下将会有一个git用户的文件夹</span></span><br><span class="line"><span class="comment"># 创建文件夹,但是创建之前先切换成git用户会节省很多时间</span></span><br><span class="line">su git</span><br><span class="line"><span class="built_in">cd</span> /home/git &amp;&amp; mkdir gitrepo</span><br></pre></td></tr></table></figure></li>
+<li><h3 id="创建仓库"><a href="#创建仓库" class="headerlink" title="创建仓库"></a>创建仓库</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 创建仓库</span></span><br><span class="line">git init --bare blog.git</span><br></pre></td></tr></table></figure></li>
+<li><h3 id="添加客户端公钥"><a href="#添加客户端公钥" class="headerlink" title="添加客户端公钥"></a>添加客户端公钥</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 在客户端的电脑生成密钥</span></span><br><span class="line">ssh-keygen -t ed25519 -C<span class="string">&quot;youremail@example.com&quot;</span></span><br><span class="line"><span class="comment"># 需要设置生成的文件存放在哪里时可以直接return使用默认位置</span></span><br><span class="line"><span class="comment"># 系统会提示你输入密码，用于防止你的电脑被黑客入侵之后导致信任这一密钥的机器也被一同入侵</span></span><br><span class="line"><span class="comment"># 查看公共密钥</span></span><br><span class="line"><span class="built_in">cd</span> ~/.ssh &amp;&amp; cat id_ed25519.pub</span><br><span class="line"><span class="comment"># 复制你的公共密钥</span></span><br><span class="line"><span class="comment"># 到服务器上</span></span><br><span class="line"><span class="built_in">cd</span> /home/git/ &amp;&amp; mkdir .ssh</span><br><span class="line"><span class="built_in">cd</span> .ssh &amp;&amp; touch authorized_keys</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;你从客户端复制的密钥，粘贴在这里&#x27;</span> &gt;&gt; authorized_keys</span><br><span class="line"><span class="comment"># 查看操作</span></span><br><span class="line">cat authorized_keys</span><br></pre></td></tr></table></figure></li>
+<li><h3 id="测试仓库"><a href="#测试仓库" class="headerlink" title="测试仓库"></a>测试仓库</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 在客户端测试将仓库clone下来</span></span><br><span class="line">git <span class="built_in">clone</span> git@serverip:/home/git/gitrepo/blog.git</span><br><span class="line"><span class="comment"># 此时会让你输入你之前为你的公钥设置的密码</span></span><br><span class="line"><span class="comment"># 如果成功了说明已经搭建好了</span></span><br></pre></td></tr></table></figure></li>
+<li><p>使用 git 的hooks进行部署</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 官方的一个例子是这样的</span></span><br><span class="line">vim /home/git/gitrepo/blog.git/hooks/post-receive</span><br><span class="line"><span class="comment"># 输入下面的代码</span></span><br><span class="line"><span class="comment">#!/bin/bash</span></span><br><span class="line"><span class="keyword">while</span> <span class="built_in">read</span> oldrev newrev ref</span><br><span class="line"><span class="keyword">do</span></span><br><span class="line">    <span class="keyword">if</span> [[ <span class="variable">$ref</span> =~ .*/master$ ]];</span><br><span class="line">    <span class="keyword">then</span></span><br><span class="line">        <span class="built_in">echo</span> <span class="string">&quot;Master ref received.  Deploying master branch to production...&quot;</span></span><br><span class="line">        git --work-tree=/var/www/html --git-dir=/home/demo/proj checkout -f <span class="comment"># 这里要改成你自己的文件目录</span></span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        <span class="built_in">echo</span> <span class="string">&quot;Ref <span class="variable">$ref</span> successfully received.  Doing nothing: only the master branch may be deployed on this server.&quot;</span></span><br><span class="line">    <span class="keyword">fi</span></span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"><span class="comment"># 保存</span></span><br><span class="line">：wq</span><br><span class="line"><span class="comment"># 给予脚本运行的权利</span></span><br><span class="line">chmod +x /home/git/gitrepo/blog.git/hooks/post-receive</span><br></pre></td></tr></table></figure></li>
+<li><p>配置hexo客户端</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 编辑 _config.yml 修改配置</span></span><br><span class="line">vim _config.yml</span><br><span class="line"><span class="comment"># 找到depolyment部分</span></span><br><span class="line"><span class="comment"># 修改内容如下</span></span><br><span class="line">deploy:</span><br><span class="line">	<span class="built_in">type</span>: git</span><br><span class="line">	repo:</span><br><span class="line">		github: your github repo</span><br><span class="line">		server: git@serverip/home/git/gitrepo/blog.git</span><br><span class="line">		branch: main</span><br><span class="line"><span class="comment"># 上方如果你的服务器的默认22端口是关闭的，则server后面的配置改成下方的</span></span><br><span class="line">		server: ssh://git@serverip:port/home/git/gitrepo/blog.git</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>这里还需要安装另外一个插件，不然在使用<code>hexo deploy</code> 的时候会报错无法识别git，安装一个插件：</p>
+<p>npm install hexo-deployer-git</p>
+</blockquote>
+</li>
+<li><p>最后测试</p>
+<p>尝试新建一篇文章，编辑完成以后使用</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npx hexo g -d</span><br></pre></td></tr></table></figure>
+
+<p>输入你之前创建的密码以后，便可以看到屏幕上提示上传完成了，以及post-receive钩子传回来的消息。</p>
+<p>如发生错误的话，可以根据提示信息解决，通常是权限问题： 文件夹的所有者，是否有运行的权限等…</p>
+</li>
+</ol>
+<h2 id="最后"><a href="#最后" class="headerlink" title="最后"></a>最后</h2><p>如果你的服务器nginx配置正确的话，此时你刚刚编写的文章便可以在你的个人网站上显示出来了。</p>
+<h3 id="如何配置nginx"><a href="#如何配置nginx" class="headerlink" title="如何配置nginx"></a>如何配置nginx</h3><p>在nginx中设置上方设置的 <strong>–work-tree</strong> 目录为root目录就可以了</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 编辑nginx conf</span></span><br><span class="line">vim /etc/nginx/nginx.d/your.conf</span><br><span class="line"><span class="comment"># 修改下面的配置为</span></span><br><span class="line">root [上方--work-tree的值]</span><br><span class="line"><span class="comment"># 保存</span></span><br><span class="line">:wq</span><br><span class="line"><span class="comment"># 重启nginx服务</span></span><br><span class="line">systemctl restart nginx</span><br></pre></td></tr></table></figure>
+
+<h3 id="踩过的坑"><a href="#踩过的坑" class="headerlink" title="踩过的坑"></a>踩过的坑</h3><ol>
+<li><p>开始的时候我想将 <strong>–work-tree</strong> 放在 <strong>/root</strong> 下然后<code>chown git:git webroot</code> 但是因为git用户连访问/root的权限都没有，所以这个位置必须选在一个任意用户可以访问的目录。根据linux <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Filesystem_Hierarchy_Standard">FHS</a>, 我选择了/srv 目录。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> /srv &amp;&amp; mkdir -p www/blog</span><br><span class="line">chown git:git www/blog</span><br></pre></td></tr></table></figure>
+
+<p>此时重新<code>npx hexo g -d</code> 就可以看到没有任何错误了。</p>
+</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/linux/" rel="tag"># linux</a>
+              <a href="/tags/geek/" rel="tag"># geek</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+            </div>
+            <div class="post-nav-item">
+                <a href="/networking/debian-as-router/" rel="next" title="使用Debian路由及拨号">
+                  使用Debian路由及拨号 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Ian</span>
+</div><script color="0,0,255" opacity="0.5" zIndex="-1" count="99" src="https://cdn.jsdelivr.net/npm/canvas-nest.js@1/dist/canvas-nest.js"></script>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/hexo-theme-next@8.9.0/source/js/comments.min.js"></script><script src="https://cdn.jsdelivr.net/npm/hexo-theme-next@8.9.0/source/js/utils.min.js"></script><script src="https://cdn.jsdelivr.net/npm/hexo-theme-next@8.9.0/source/js/motion.min.js"></script><script src="https://cdn.jsdelivr.net/npm/hexo-theme-next@8.9.0/source/js/next-boot.min.js"></script>
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>
