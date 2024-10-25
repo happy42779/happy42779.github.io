@@ -7,17 +7,11 @@ document.addEventListener('page:loaded', () => {
       condition: window.mermaid
     }).then(() => {
       mermaidElements.forEach(element => {
-        const box = document.createElement('div');
-        box.className = 'code-container';
         const newElement = document.createElement('div');
         newElement.innerHTML = element.innerHTML;
-        newElement.className = 'mermaid';
-        box.appendChild(newElement);
-        if (CONFIG.copycode.enable) {
-          NexT.utils.registerCopyButton(box, box, element.textContent);
-        }
+        newElement.className = element.className;
         const parent = element.parentNode;
-        parent.parentNode.replaceChild(box, parent);
+        parent.parentNode.replaceChild(newElement, parent);
       });
       mermaid.initialize({
         theme    : CONFIG.darkmode && window.matchMedia('(prefers-color-scheme: dark)').matches ? CONFIG.mermaid.theme.dark : CONFIG.mermaid.theme.light,

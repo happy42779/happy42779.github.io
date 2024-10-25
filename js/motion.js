@@ -10,11 +10,12 @@ NexT.motion.integrator = {
   },
   add(fn) {
     const sequence = fn();
-    this.queue.push(sequence);
+    if (CONFIG.motion.async) this.queue.push(sequence);
+    else this.queue = this.queue.concat(sequence);
     return this;
   },
   bootstrap() {
-    if (!CONFIG.motion.async) this.queue = [this.queue.flat()];
+    if (!CONFIG.motion.async) this.queue = [this.queue];
     this.queue.forEach(sequence => {
       const timeline = window.anime.timeline({
         duration: 200,
