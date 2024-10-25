@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.svg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.svg">
+  <link rel="mask-icon" href="/images/trigram-logo-128.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.6.0/css/all.min.css" integrity="sha256-5eIC48iZUHmSlSUz9XtjRyK2mzQkHScZY1WdMaoz74E=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"happy42779.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.21.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="https://cdn.jsdelivr.net/npm/hexo-theme-next@8.21.0/source/js/config.min.js"></script>
+
+    <meta name="description" content="背景续上一篇将Debian配置成路由器，本篇讲介绍如何在Debian上使用同样的软件实现 openwrt 上的 helloword 插件功能。  声明 本文章仅为记录自己在学习openwrt中的helloworld插件以更深入的了解linux网络以及iptables时的浅薄理解！所有的配置均可在github上找到。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用Debian路由及拨号2">
+<meta property="og:url" content="https://happy42779.github.io/networking/debian-as-router2/index.html">
+<meta property="og:site_name" content="大器晚成">
+<meta property="og:description" content="背景续上一篇将Debian配置成路由器，本篇讲介绍如何在Debian上使用同样的软件实现 openwrt 上的 helloword 插件功能。  声明 本文章仅为记录自己在学习openwrt中的helloworld插件以更深入的了解linux网络以及iptables时的浅薄理解！所有的配置均可在github上找到。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-08-31T03:25:25.000Z">
+<meta property="article:modified_time" content="2024-10-24T04:40:44.881Z">
+<meta property="article:author" content="Ian">
+<meta property="article:tag" content="linux">
+<meta property="article:tag" content="debian">
+<meta property="article:tag" content="router">
+<meta property="article:tag" content="iptables">
+<meta property="article:tag" content="dnsmasq">
+<meta property="article:tag" content="pdnsd">
+<meta property="article:tag" content="ipset">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://happy42779.github.io/networking/debian-as-router2/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://happy42779.github.io/networking/debian-as-router2/","path":"networking/debian-as-router2/","title":"使用Debian路由及拨号2"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>使用Debian路由及拨号2 | 大器晚成</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">大器晚成</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">潛龍勿用</p>
+      <img class="custom-logo-image" src="/images/trigram-logo-128.svg" alt="大器晚成">
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%83%8C%E6%99%AF"><span class="nav-number">1.</span> <span class="nav-text">背景</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A3%B0%E6%98%8E"><span class="nav-number">2.</span> <span class="nav-text">声明</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%87%86%E5%A4%87%E5%B7%A5%E4%BD%9C"><span class="nav-number">3.</span> <span class="nav-text">准备工作</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#pdnsd"><span class="nav-number">3.1.</span> <span class="nav-text">pdnsd</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#iptables"><span class="nav-number">3.2.</span> <span class="nav-text">iptables</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#dnsmasq"><span class="nav-number">3.3.</span> <span class="nav-text">dnsmasq</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ipset"><span class="nav-number">3.4.</span> <span class="nav-text">ipset</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#xray"><span class="nav-number">3.5.</span> <span class="nav-text">xray</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8E%9F%E7%90%86"><span class="nav-number">4.</span> <span class="nav-text">原理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%87%8D%E8%A6%81%E6%8F%90%E7%A4%BA"><span class="nav-number">5.</span> <span class="nav-text">重要提示</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%85%8D%E7%BD%AE"><span class="nav-number">6.</span> <span class="nav-text">配置</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ipset-1"><span class="nav-number">6.1.</span> <span class="nav-text">ipset</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#dnsmasq-1"><span class="nav-number">6.2.</span> <span class="nav-text">dnsmasq</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#pdnsd-1"><span class="nav-number">6.3.</span> <span class="nav-text">pdnsd</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#iptables-1"><span class="nav-number">6.4.</span> <span class="nav-text">iptables</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#xray-1"><span class="nav-number">6.5.</span> <span class="nav-text">xray</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BB%93%E6%9E%9C"><span class="nav-number">7.</span> <span class="nav-text">结果</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Ian"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Ian</p>
+  <div class="site-description" itemprop="description">Great talent takes long to mature</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">9</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">18</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/happy42779" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;happy42779" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+  </div>
+
+<div id=163MusicPlayer>
+    <iframe frameborder="no" border="0" marginwidth="0" marginheight="0" width=280 height=86 src="//music.163.com/outchain/player?type=2&id=29572771&auto=1&height=66"></iframe>
+    </iframe>
+</div>
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://happy42779.github.io/networking/debian-as-router2/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Ian">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="大器晚成">
+      <meta itemprop="description" content="Great talent takes long to mature">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="使用Debian路由及拨号2 | 大器晚成">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          使用Debian路由及拨号2
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2021-08-31 11:25:25" itemprop="dateCreated datePublished" datetime="2021-08-31T11:25:25+08:00">2021-08-31</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2024-10-24 12:40:44" itemprop="dateModified" datetime="2024-10-24T12:40:44+08:00">2024-10-24</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/networking/" itemprop="url" rel="index"><span itemprop="name">networking</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>续上一篇将Debian配置成路由器，本篇讲介绍如何在Debian上使用同样的软件实现 <code>openwrt</code> 上的 <code>helloword</code> 插件功能。</p>
+<blockquote>
+<h2 id="声明"><a href="#声明" class="headerlink" title="声明"></a>声明</h2><blockquote>
+<p>本文章仅为记录自己在学习<a target="_blank" rel="noopener" href="https://github.com/coolsnowwolf/lede">openwrt</a>中的<a target="_blank" rel="noopener" href="https://github.com/jerrykuku/luci-app-vssr">helloworld</a>插件以更深入的了解linux网络以及iptables时的浅薄理解！所有的配置均可在github上找到。</p>
+</blockquote>
+</blockquote>
+<ul>
+<li><h2 id="准备工作"><a href="#准备工作" class="headerlink" title="准备工作"></a>准备工作</h2><blockquote>
+<p>  首先我们安装用到的软件。大部分软件都是在上一篇当中用过的。</p>
+</blockquote>
+<ul>
+<li><h3 id="pdnsd"><a href="#pdnsd" class="headerlink" title="pdnsd"></a>pdnsd</h3><p>  根据Debian官网显示，由于很久无人维护的原因已经从官方的软件源当中移除了。好在我们还可以从debian的官网下载到<a target="_blank" rel="noopener" href="https://wiki.archlinux.org/title/Pdnsd">pdnsd</a>的<a target="_blank" rel="noopener" href="http://snapshot.debian.org/archive/debian-archive/20190328T105444Z/debian/pool/main/p/pdnsd/">发行包</a>以及<a target="_blank" rel="noopener" href="https://manpages.debian.org/jessie/pdnsd/pdnsd.8.en.html">文档</a>。</p>
+<p>  下载好发行包之后使用下面命令进行安装</p>
+<p>  <code>dpkg -i pdnsd_1.2.9a-par-2_amd64.deb</code></p>
+<p>  配置文件位于 <em>&#x2F;etc&#x2F;pdnsd.conf</em>，首先我们备份这个然后重新创建一个后面进行手动配置</p>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">mv</span> /etc/pdnsd.conf /etc/pdnsd.conf.bak</span><br><span class="line"><span class="built_in">touch</span> /etc/pdnsd.conf</span><br></pre></td></tr></table></figure>
+</li>
+<li><h3 id="iptables"><a href="#iptables" class="headerlink" title="iptables"></a>iptables</h3><p>  系统自带</p>
+</li>
+<li><h3 id="dnsmasq"><a href="#dnsmasq" class="headerlink" title="dnsmasq"></a>dnsmasq</h3><p>  上篇已经安装，请自行参考</p>
+</li>
+<li><h3 id="ipset"><a href="#ipset" class="headerlink" title="ipset"></a>ipset</h3><p>  系统自带</p>
+</li>
+<li><h3 id="xray"><a href="#xray" class="headerlink" title="xray"></a>xray</h3><p>  xray的<a target="_blank" rel="noopener" href="https://github.com/XTLS/Xray-core">github</a>以及<a target="_blank" rel="noopener" href="https://xtls.github.io/Xray-docs-next/">文档</a></p>
+<p>  根据github的教程使用下面命令进行安装：<br>  <code>bash -c &quot;$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)&quot; @ install</code></p>
+<p>  安装的目录位于 *&#x2F;usr&#x2F;local&#x2F;etc&#x2F;xray&#x2F;*，配置文件的目录 <em>&#x2F;usr&#x2F;local&#x2F;etc&#x2F;xray&#x2F;config.json</em></p>
+</li>
+</ul>
+</li>
+<li><h2 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h2><p>  尝试先用文字进行描述吧，后面可能会有一个流程图也不一定</p>
+<ol>
+<li>预定配置好ipset中用到的一些集合：china, gfwlist, whitelist, blacklist</li>
+<li>xray 作为客户端与服务端进行连接，使用tcp协议。</li>
+<li>dnsmasq 可以读取写入ipset，iptables可以根据ipset来设置规则</li>
+<li>pdnsd 可以对解析结果进行缓存，也可以设置为仅用tcp协议进行解析，这个可以完美地与xray搭配。把gfwlist中的域名由pdnsd通过xray转发到pdnsd中设置的上游dns服务器进行解析。</li>
+<li>dnsmasq 提供本地dns解析服务，dnsmasq中可以配置规则，将指定的域名解析回来的ip地址加入到指定的ipset中并进行缓存。dnsmasq还可以配置指定的域名使用指定的dns服务进行解析，这样可以让gfwlist中的域名强制用pdnsd进行解析。</li>
+<li>iptables 设置规则如果在China&#x2F;whitelist集合中则直接转发，如果是在gfwlist&#x2F;blacklist集合中则转发给xray所监听的端口，然后由xray转发到服务器，服务器再转发到pdnsd指定的上游dns服务器进行解析然后返回结果。</li>
+</ol>
+<blockquote>
+<h2 id="重要提示"><a href="#重要提示" class="headerlink" title="重要提示"></a>重要提示</h2><blockquote>
+<p> 整个流程看起来似乎不是那么复杂，但是需要了解我们在上网的时候涉及到dns解析，以及目标ip无法访问的情况。刚开始的时候我尝试的时候所有的工具都按照预定的方式在工作，但是唯独pdnsd进行解析的时候永远也解析不到结果。那是因为pdnsd使用的上游服务器为 <strong>8.8.8.8&#x2F;8.8.4.4</strong>，这两个ip本来就是无法访问的。因此这两个ip要手动加入到gfwlist中，这样由pdnsd发往 <strong>8.8.8.8&#x2F;8.8.4.4</strong> 的dns解析请求才会根据iptables的规则由xray进行转发；而gfwlist集合中的其他ip地址是根据dnsmasq的设置在域名解析请求之后才会被添加到gfwlist集合中然后缓存的。
+ </p>
+</blockquote>
+</blockquote>
+</li>
+<li><h2 id="配置"><a href="#配置" class="headerlink" title="配置"></a>配置</h2><ul>
+<li><h3 id="ipset-1"><a href="#ipset-1" class="headerlink" title="ipset"></a>ipset</h3><ul>
+<li><p>china： 这个集合是非常重要的，这个list需要自己手动的去添加。插件中使用的是 <a target="_blank" rel="noopener" href="https://ispip.clang.cn/">这里</a> 所收录的数据。下载数据：</p>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 下载</span></span><br><span class="line">wget  https:;//ispip.clang.cn/all_cn.txt &gt; /tmp/china.txt 2&gt;/dev/null</span><br><span class="line"><span class="comment"># 编辑成 ipset 可以导入的格式</span></span><br><span class="line"><span class="built_in">touch</span> /etc/ipset.conf</span><br><span class="line"><span class="comment"># 创建china集合</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;create china hash:net family inet hashsize 1024 maxelem 65536&quot;</span> &gt;&gt; /etc/ipset.conf</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>gfwlist：这个集合使用的是<a target="_blank" rel="noopener" href="https://gitlab.com/gfwlist/gfwlist/raw/master/gfwlist.txt">这里</a> 这个文件格式是base64，首先先解密，然后用命令把文件内容格式变成 ipset 需要的格式。</p>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 下载</span></span><br><span class="line">wget -O- https://gitlab.com/gfwlist/gfwlist/raw/master/gfwlist.txt &gt; /tmp/gfw.b64 2&gt;/dev/null</span><br><span class="line"><span class="comment"># 解密</span></span><br><span class="line"><span class="built_in">cat</span> /tmp/gfw.b64 | <span class="built_in">base64</span> -d &gt; /tmp/gfw.txt</span><br><span class="line"><span class="comment"># 格式化</span></span><br><span class="line">sed -i <span class="string">&#x27;/^@@|/d&#x27;</span> /tmp/gfw.txt <span class="comment"># 这条命令不兼容macos</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">cat</span> /tmp/gfw.txt | <span class="built_in">sort</span> -u | sed <span class="string">&#x27;s#!.\+##; s#|##g; s#@##g; s#http:\/\/##; s#https:\/\/##;&#x27;</span> | sed <span class="string">&#x27;/\*/d; /apple\.com/d; /sina\.cn/d; /sina\.com\.cn/d; /baidu\.com/d; /byr\.cn/d; /jlike\.com/d; /weibo\.com/d; /zhongsou\.com/d; /youdao\.com/d; /sogou\.com/d; /so\.com/d; /soso\.com/d; /aliyun\.com/d; /taobao\.com/d; /jd\.com/d; /qq\.com/d&#x27;</span> | sed <span class="string">&#x27;/^[0-9]\+\.[0-9]\+\.[0-9]\+\.[0-9]\+$/d&#x27;</span> | grep <span class="string">&#x27;^[0-9a-zA-Z\.-]\+$&#x27;</span> | grep <span class="string">&#x27;\.&#x27;</span> | sed <span class="string">&#x27;s#^\.\+##&#x27;</span> | <span class="built_in">sort</span> -u | awk <span class="string">&#x27;BEGIN &#123; prev = &quot;________&quot;; &#125;  &#123;cur = $0;if (index(cur, prev) == 1 &amp;&amp; substr(cur, 1 + length(prev) ,1) == &quot;.&quot;) &#123;&#125; else &#123;print cur;prev = cur;&#125;&#125;&#x27;</span> | <span class="built_in">sort</span> -u &gt; gfwlist.txt</span><br><span class="line"></span><br><span class="line">sed <span class="string">&#x27;/.*/s/.*/server=\/\.&amp;\/127.0.0.1#5335\nipset=\/\.&amp;\/gfwlist/&#x27;</span> /tmp/gfwlist.txt &gt;/tmp/gfwlist.conf</span><br></pre></td></tr></table></figure>
+<p>  这样一来 gfwlist.conf 文件的内容格式应该如下：</p>
+  <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">server=/.facebook.com/127.0.0.1#5335</span><br><span class="line">ipset=/.facebook.com/gfwlist</span><br></pre></td></tr></table></figure>
+
+<p>  <code>server</code> 那一行表示当 dnsmasq 收到dns请求的时候如果是匹配 <code>*.facebook.com</code> 时则将这个请求转发到本机的<code>5335</code>端口，即pdnsd所监听的端口。</p>
+<p>  <code>ipset</code> 这行表示匹配 <code>*.facebook.com</code> 的解析返回的ip添加到名为gfwlist的集合中</p>
+<p>  gfwlist 集合与 china 集合不一样的地方在于 China 集合中必须要一开始就有数据，而 gfwlist 集合中开始不需要有数据。数据会随着用户的使用进行解析并缓存。</p>
+<blockquote>
+<p>  注意</p>
+<blockquote>
+<p> gfwlist 集合中虽然开始不需要有数据，但是在使用之前必须要将 8.8.8.8&#x2F;8.8.4.4 加入到集合中！</p>
+</blockquote>
+</blockquote>
+<p>  接下来创建 gfwlist 集合并加入数据</p>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;create gfwlist hash:net family inet&#x27;</span> &gt;&gt; /etc/ipset.conf</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;add gfwlist 8.8.8.8&#x27;</span> &gt;&gt; /etc/ipset.conf</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;add gfwlist 8.8.4.4&#x27;</span> &gt;&gt; /etc/ipset.conf</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>whitelist: 这个集合简单很多，只需要将不在 china 集合中，也不想走 xray 的域名加入到其中就可以了。</p>
+<blockquote>
+<p>  此处我们必须要将 xray 中配置的服务器域名加入到这个集合中，此处我们不必手动添加，可以在初次访问的时候由 dnsmasq 自动添加进去</p>
+</blockquote>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;ipset=/XRAY SERVER DOMAIN/whitelist&#x27;</span> &gt;&gt; /etc/dnsmasq.d/whitelist.conf</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>blacklist: 这个集合也很简单，可以将本身没有被 block，但是间歇性无法使用的网站，如 github 放到里面，这样这些网站就会被代理。</p>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;ipset=/.api.ipify.org/blacklist&#x27;</span> &gt;&gt; /etc/dnsmasq.d/blacklist.con</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;ipset=/.v2fly.org/blacklist&#x27;</span> &gt;&gt; /etc/dnsmasq.d/blacklist.con</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;ipset=/.github.com/blacklist&#x27;</span> &gt;&gt; /etc/dnsmasq.d/blacklist.con</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;ipset=/.raw.githubusercontent.com/blacklist&#x27;</span> &gt;&gt; /etc/dnsmasq.d/blacklist.con</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;server=/.api.ipify.org/127.0.0.1#5335&#x27;</span> &gt;&gt; /etc/dnsmasq.d/blacklist.con</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;server=/.v2fly.org/127.0.0.1#5335&#x27;</span> &gt;&gt; /etc/dnsmasq.d/blacklist.con</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;server=/.github.com/127.0.0.1#5335&#x27;</span> &gt;&gt; /etc/dnsmasq.d/blacklist.con</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;server=/.raw.githubusercontent.com/127.0.0.1#5335&#x27;</span> &gt;&gt; /etc/dnsmasq.d/blacklist.con</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>  现在我们需要完成在 china 集合里面还没有完成的事情！</p>
+<blockquote>
+<p> <code>awk &#39;!/^$/&amp;&amp;!/^#/&#123;printf(&quot;add china %s&#39;&quot; &quot;&#39;\n&quot;,$0)&#125;&#39; /tmp/china.txt &gt;&gt; /etc/ipset.conf</code></p>
+</blockquote>
+</blockquote>
+</li>
+</ul>
+<p>做完这一步之后我们需要让这个 ipset.conf 在开机的时候被 ipset 自动加载。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 编辑网络接口文件</span></span><br><span class="line">vim /etc/network/interfaces</span><br><span class="line"><span class="comment"># 找到 auto dsl-provider这一部分，在这一部分之后插入下列内容</span></span><br><span class="line">post-up /usr/sbin/ipset -f /etc/ipset.conf restore <span class="comment">#在这个接口开始工作之后运行这个命令从文件里面恢复 ipset，因为ipset中的数据重启会消失的。</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><h3 id="dnsmasq-1"><a href="#dnsmasq-1" class="headerlink" title="dnsmasq"></a>dnsmasq</h3><p>dnsmasq 会自动加载 <code>/etc/dnsmasq.d/</code> 下的所有conf文件。所以我们只需要把刚刚的 gfwlist.conf 移动到该目录下就可以在 dnsmasq 启动时自动加载了。</p>
+<pre><code>`mv /tmp/gfwlist.conf /etc/dnsmasq.d/`
+</code></pre>
+<p>之前我们在dnsmasq中指定了 server, 我们需要修改一下，添加新的配置：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">listen-address=127.0.0.1    <span class="comment">#same</span></span><br><span class="line">cache-size=10000            <span class="comment">#same</span></span><br><span class="line">clear-on-reload             <span class="comment">#same</span></span><br><span class="line">stop-dns-rebind             <span class="comment"># 优化，与代理无关</span></span><br><span class="line">rebind-localhost-ok         <span class="comment"># 同上</span></span><br><span class="line">all-servers                 <span class="comment"># 多线程查询</span></span><br><span class="line">port=53                     <span class="comment"># 手动指定端口，因为我们还是用53，所以要不要都可以</span></span><br><span class="line">local-service               <span class="comment"># 优化，与代理无关</span></span><br><span class="line">server=223.5.5.5            <span class="comment"># 因为我们指定了多线程查询，所以这里可以多指定，那个先返回用哪个的结果</span></span><br><span class="line">server=114.114.114          <span class="comment"># 同上</span></span><br></pre></td></tr></table></figure>
+<p>开启之前可以使用 dnsmasq -test 来进行测试，看看有没有什么地方写错了。</p>
+</li>
+<li><h3 id="pdnsd-1"><a href="#pdnsd-1" class="headerlink" title="pdnsd"></a>pdnsd</h3><p>   pdnsd 的<a target="_blank" rel="noopener" href="https://manpages.debian.org/jessie/pdnsd/pdnsd.conf.5.en.html">文档</a><br>   pdnsd 的配置如下：</p>
+   <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">global&#123;</span><br><span class="line">perm_cache=1024;                 #cache大小， kb</span><br><span class="line">cache_dir=&quot;/var/cache/pdnsd&quot;;   # 要先创建这个文件夹</span><br><span class="line">pid_file=&quot;/run/pdnsd.pid&quot;;      # 如果飞正常关闭程序，这个pid文件会仍然存在，此时启动会报错</span><br><span class="line">run_as=&quot;pdnsd&quot;;</span><br><span class="line">server_ip=127.0.0.1;</span><br><span class="line">server_port=5335;</span><br><span class="line">status_ctl=on;                  # 这个会用到上面的pid</span><br><span class="line">query_method=tcp_only;          # 只用tcp，这样可以在 iptables 只设置 tcp 代理</span><br><span class="line">min_ttl=1h;                     # 缓存的最短过期时，默认为120秒，可以自己调整</span><br><span class="line">max_ttl=1w;                     # 缓存的最长有效期，默认值为1周</span><br><span class="line">timeout=10;                     # 响应时间</span><br><span class="line">neg_domain_pol=on;              # 文档建议on</span><br><span class="line">proc_limit=4;                   # 线程数量，默认40</span><br><span class="line">procq_limit=16;                 # 请求队列的长度，默认60</span><br><span class="line">par_queries=1;                  # 每个dns请求的并行上游dns请求数量，如果有多个server可以修改这里，但是只有 8.8.8.8 比较快,毕竟在hk。可以看情况看需求设置。</span><br><span class="line">&#125;</span><br><span class="line">server&#123;</span><br><span class="line">    label=&quot;xray_dns&quot;;</span><br><span class="line">    ip=8.8.8.8;</span><br><span class="line">    port=53;</span><br><span class="line">    timeout=6;                      </span><br><span class="line">    uptest=none;                    # 不需要检查上游服务器是否可用</span><br><span class="line">    interval=10m;                   # 检查间隔</span><br><span class="line">    purge_cache=off;                # dns缓存过期后是否立马删除</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>   使用 <code>pdnsd -c /etc/pdnsd.conf -d</code> 来启动pdnsd，<code>d</code>表示后台运行</p>
+</li>
+<li><h3 id="iptables-1"><a href="#iptables-1" class="headerlink" title="iptables"></a>iptables</h3><ul>
+<li><p>tcp</p>
+<p>  iptables 在这里就只是记录配置，具体iptables的运行方式，后面会单独以这个为例进行记录。</p>
+<p>  配置如下：</p>
+  <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br></pre></td><td class="code"><pre><span class="line">*nat</span><br><span class="line">:PREROUTING ACCEPT [0:0]</span><br><span class="line">:INPUT ACCEPT [0:0]</span><br><span class="line">:OUTPUT ACCEPT [0:0]</span><br><span class="line">:POSTROUTING ACCEPT [0:0]</span><br><span class="line">:MINIUPNPD - [0:0]</span><br><span class="line">:MINIUPNPD-POSTROUTING - [0:0]</span><br><span class="line">:SS_SPEC_WAN_AC - [0:0]</span><br><span class="line">:SS_SPEC_WAN_FW - [0:0]</span><br><span class="line">:postrouting_LAN_rule - [0:0]</span><br><span class="line">:postrouting_WAN_rule - [0:0]</span><br><span class="line">:postrouting_rule - [0:0]</span><br><span class="line">:prerouting_LAN_rule - [0:0]</span><br><span class="line">:prerouting_WAN_rule - [0:0]</span><br><span class="line">:prerouting_rule - [0:0]</span><br><span class="line">:zone_LAN_postrouting - [0:0]</span><br><span class="line">:zone_LAN_prerouting - [0:0]</span><br><span class="line">:zone_WAN_postrouting - [0:0]</span><br><span class="line">:zone_WAN_prerouting - [0:0]</span><br><span class="line">-A PREROUTING -p tcp -m comment --comment _SS_SPEC_RULE_ -j SS_SPEC_WAN_AC</span><br><span class="line">-A PREROUTING -i LAN -m comment --comment &quot;!fw3&quot; -j zone_LAN_prerouting</span><br><span class="line">-A OUTPUT -p tcp -m comment --comment _SS_SPEC_RULE_ -j SS_SPEC_WAN_AC</span><br><span class="line"># SNAT，自动填入 wan ip，因为用的是 ppp 拨号</span><br><span class="line">-A POSTROUTING -o ppp0 -j MASQUERADE</span><br><span class="line">-A POSTROUTING -o LAN -m comment --comment &quot;!fw3&quot; -j zone_LAN_postrouting</span><br><span class="line"></span><br><span class="line"># 过滤分流规则</span><br><span class="line">-A SS_SPEC_WAN_AC -m set --match-set whitelist dst -j RETURN</span><br><span class="line">-A SS_SPEC_WAN_AC -m set --match-set china dst -j RETURN</span><br><span class="line">-A SS_SPEC_WAN_AC -m set --match-set blacklist dst -j SS_SPEC_WAN_FW</span><br><span class="line">-A SS_SPEC_WAN_AC -d 65.49.222.137/32 -p tcp -m tcp ! --dport 53 -j RETURN</span><br><span class="line">-A SS_SPEC_WAN_AC -m set --match-set gfwlist dst -j SS_SPEC_WAN_FW</span><br><span class="line"></span><br><span class="line"># 转发代理之前过滤掉lan ip</span><br><span class="line">-A SS_SPEC_WAN_FW -d 0.0.0.0/8 -j RETURN</span><br><span class="line">-A SS_SPEC_WAN_FW -d 10.0.0.0/8 -j RETURN</span><br><span class="line">-A SS_SPEC_WAN_FW -d 127.0.0.0/8 -j RETURN</span><br><span class="line">-A SS_SPEC_WAN_FW -d 169.254.0.0/16 -j RETURN</span><br><span class="line">-A SS_SPEC_WAN_FW -d 172.16.0.0/12 -j RETURN</span><br><span class="line">-A SS_SPEC_WAN_FW -d 192.168.0.0/16 -j RETURN</span><br><span class="line">-A SS_SPEC_WAN_FW -d 224.0.0.0/4 -j RETURN</span><br><span class="line">-A SS_SPEC_WAN_FW -d 240.0.0.0/4 -j RETURN</span><br><span class="line"></span><br><span class="line"># 转发代理</span><br><span class="line">-A SS_SPEC_WAN_FW -p tcp -j REDIRECT --to-ports 1234</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"># UPNUP</span><br><span class="line">-A zone_LAN_postrouting -j MINIUPNPD-POSTROUTING</span><br><span class="line">-A zone_LAN_prerouting -j MINIUPNPD</span><br><span class="line"></span><br><span class="line">COMMIT</span><br><span class="line">      </span><br><span class="line">*raw</span><br><span class="line">:PREROUTING ACCEPT [0:0]</span><br><span class="line">:OUTPUT ACCEPT [0:0]</span><br><span class="line">COMMIT</span><br><span class="line"></span><br><span class="line">*mangle</span><br><span class="line">:PREROUTING ACCEPT [0:0]</span><br><span class="line">:INPUT ACCEPT [0:0]</span><br><span class="line">:FORWARD ACCEPT [0:0]</span><br><span class="line">:OUTPUT ACCEPT [0:0]</span><br><span class="line">:POSTROUTING ACCEPT [0:0]</span><br><span class="line"></span><br><span class="line"># 设置 MSS</span><br><span class="line">-A FORWARD -o LAN -p tcp -m tcp --tcp-flags SYN,RST SYN -m comment --comment &quot;!fw3: Zone LAN MTU fixing&quot; -j TCPMSS --clamp-mss-to-pmtu</span><br><span class="line">-A FORWARD -i LAN -p tcp -m tcp --tcp-flags SYN,RST SYN -m comment --comment &quot;!fw3: Zone LAN MTU fixing&quot; -j TCPMSS --clamp-mss-to-pmtu</span><br><span class="line">COMMIT</span><br><span class="line"></span><br><span class="line">*filter</span><br><span class="line">:INPUT ACCEPT [0:0]</span><br><span class="line">:FORWARD ACCEPT [0:0]</span><br><span class="line">:OUTPUT ACCEPT [0:0]</span><br><span class="line">COMMIT</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>  上面的配置中需要将 <code>LAN</code> 更换成 相应的 lan 口设备名称！
+  </p>
+</blockquote>
+</li>
+<li><p>tcp+udp<br>  后面更新</p>
+</li>
+</ul>
+</li>
+<li><h3 id="xray-1"><a href="#xray-1" class="headerlink" title="xray"></a>xray</h3><p><code>xray</code> 的官方配置在<a target="_blank" rel="noopener" href="https://github.com/XTLS/Xray-examples/tree/main/VLESS-TCP-XTLS-WHATEVER">这里</a>，参照模版进行更改。<br>我们只需要 <code>inbound, outbound, routing</code> 这几个模块就好了，其中 <code>routing</code> 部分我们只需要填 <code>domainStrategy: &quot;IPIfNonMatch&quot;</code> 即可。</p>
+</li>
+</ul>
+</li>
+<li><h2 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h2><p>  不出意外的话现在应该可以正常上网了。Enjoy～</p>
+</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/linux/" rel="tag"># linux</a>
+              <a href="/tags/debian/" rel="tag"># debian</a>
+              <a href="/tags/router/" rel="tag"># router</a>
+              <a href="/tags/iptables/" rel="tag"># iptables</a>
+              <a href="/tags/dnsmasq/" rel="tag"># dnsmasq</a>
+              <a href="/tags/pdnsd/" rel="tag"># pdnsd</a>
+              <a href="/tags/ipset/" rel="tag"># ipset</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/networking/debian-as-router/" rel="prev" title="使用Debian路由及拨号">
+                  <i class="fa fa-angle-left"></i> 使用Debian路由及拨号
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/linux/%E4%BD%BF%E7%94%A8acme-sh%E4%B8%BA%E7%BD%91%E7%AB%99%E7%94%B3%E8%AF%B7SSL%E8%AF%81%E4%B9%A6/" rel="next" title="使用acme.sh为网站申请SSL证书">
+                  使用acme.sh为网站申请SSL证书 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2024</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Ian</span>
+  </div><script color="0,0,255" opacity="0.5" zIndex="-1" count="99" src="https://cdn.jsdelivr.net/npm/canvas-nest.js@1/dist/canvas-nest.js"></script>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/hexo-theme-next@8.21.0/source/js/comments.min.js"></script><script src="https://cdn.jsdelivr.net/npm/hexo-theme-next@8.21.0/source/js/utils.min.js"></script><script src="https://cdn.jsdelivr.net/npm/hexo-theme-next@8.21.0/source/js/motion.min.js"></script><script src="https://cdn.jsdelivr.net/npm/hexo-theme-next@8.21.0/source/js/sidebar.min.js"></script><script src="https://cdn.jsdelivr.net/npm/hexo-theme-next@8.21.0/source/js/next-boot.min.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

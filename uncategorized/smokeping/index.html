@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.svg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.svg">
+  <link rel="mask-icon" href="/images/trigram-logo-128.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.6.0/css/all.min.css" integrity="sha256-5eIC48iZUHmSlSUz9XtjRyK2mzQkHScZY1WdMaoz74E=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"happy42779.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.21.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="https://cdn.jsdelivr.net/npm/hexo-theme-next@8.21.0/source/js/config.min.js"></script>
+
+    <meta name="description" content="BackgroundI need a tool to check the stability of multiple servers to decide how well each optimised routes to China work, over a long period of time. I have researched about tools to do that, and got">
+<meta property="og:type" content="article">
+<meta property="og:title" content="smokeping">
+<meta property="og:url" content="https://happy42779.github.io/uncategorized/smokeping/index.html">
+<meta property="og:site_name" content="大器晚成">
+<meta property="og:description" content="BackgroundI need a tool to check the stability of multiple servers to decide how well each optimised routes to China work, over a long period of time. I have researched about tools to do that, and got">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2024-10-25T02:31:50.000Z">
+<meta property="article:modified_time" content="2024-10-25T02:31:50.470Z">
+<meta property="article:author" content="Ian">
+<meta property="article:tag" content="networking">
+<meta property="article:tag" content="server">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://happy42779.github.io/uncategorized/smokeping/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://happy42779.github.io/uncategorized/smokeping/","path":"uncategorized/smokeping/","title":"smokeping"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>smokeping | 大器晚成</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">大器晚成</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">潛龍勿用</p>
+      <img class="custom-logo-image" src="/images/trigram-logo-128.svg" alt="大器晚成">
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Background"><span class="nav-number">1.</span> <span class="nav-text">Background</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Install"><span class="nav-number">1.1.</span> <span class="nav-text">Install</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Configuration"><span class="nav-number">1.2.</span> <span class="nav-text">Configuration</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#smokeping"><span class="nav-number">1.2.1.</span> <span class="nav-text">smokeping</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#fcgiwrap"><span class="nav-number">1.2.2.</span> <span class="nav-text">fcgiwrap</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#nginx"><span class="nav-number">1.2.3.</span> <span class="nav-text">nginx</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Run-and-Test"><span class="nav-number">1.3.</span> <span class="nav-text">Run and Test</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Problems-I-had"><span class="nav-number">1.4.</span> <span class="nav-text">Problems I had</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Conclusion"><span class="nav-number">1.5.</span> <span class="nav-text">Conclusion</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference"><span class="nav-number">1.6.</span> <span class="nav-text">Reference</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Ian"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Ian</p>
+  <div class="site-description" itemprop="description">Great talent takes long to mature</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">9</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">18</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/happy42779" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;happy42779" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+  </div>
+
+<div id=163MusicPlayer>
+    <iframe frameborder="no" border="0" marginwidth="0" marginheight="0" width=280 height=86 src="//music.163.com/outchain/player?type=2&id=29572771&auto=1&height=66"></iframe>
+    </iframe>
+</div>
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://happy42779.github.io/uncategorized/smokeping/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Ian">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="大器晚成">
+      <meta itemprop="description" content="Great talent takes long to mature">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="smokeping | 大器晚成">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          smokeping
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2024-10-25 10:31:50" itemprop="dateCreated datePublished" datetime="2024-10-25T10:31:50+08:00">2024-10-25</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h1 id="Background"><a href="#Background" class="headerlink" title="Background"></a>Background</h1><p>I need a tool to check the stability of multiple servers to decide how well each optimised routes to China work, over a long period of time. I have researched about tools to do that, and got attracted by the look of <a target="_blank" rel="noopener" href="https://github.com/oetiker/SmokePing">Smokeping</a>. Though there are some other modern ones, such as <a target="_blank" rel="noopener" href="https://github.com/louislam/uptime-kuma">uptime-kuma</a> which is also easier to setup, I still like how I can plot all information of multiple servers on a  single graph.</p>
+<h2 id="Install"><a href="#Install" class="headerlink" title="Install"></a>Install</h2><p>Many tutorials uses apache server, while I want to use nginx instead.</p>
+<p>Thing to install:</p>
+<ul>
+<li>smokeping</li>
+<li>fping</li>
+<li>nginx</li>
+<li>fcgiwrap</li>
+<li>rrdtool, this is old, maybe update to something later?</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get install --no-install-recommends smokeping fping nginx rrdtool fcgiwrap</span><br></pre></td></tr></table></figure>
+
+<p>After installation, run <code>smokeping --version</code> to verify, and under <code>/etc/smokeping/config.d/</code>, there are some template files.</p>
+<h2 id="Configuration"><a href="#Configuration" class="headerlink" title="Configuration"></a>Configuration</h2><h3 id="smokeping"><a href="#smokeping" class="headerlink" title="smokeping"></a>smokeping</h3><p>Edit <code>/etc/smokeping/config.d/Targets</code> to servers to ping.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line">*** Targets ***</span><br><span class="line"></span><br><span class="line">probe = FPing</span><br><span class="line"></span><br><span class="line">menu = Top</span><br><span class="line">title = Network Latency Grapher</span><br><span class="line">remark = Welcome to the SmokePing website of your servers. \</span><br><span class="line">         Here you will learn all about the latency of their network.</span><br><span class="line"></span><br><span class="line">+ Servers</span><br><span class="line">menu= Servers</span><br><span class="line">title = Servers to Monitor</span><br><span class="line"></span><br><span class="line">++Saltyfish</span><br><span class="line">menu = Saltyfish</span><br><span class="line">title = Saltyfish US-9929</span><br><span class="line">host= 10.10.15.2</span><br><span class="line"></span><br><span class="line">++VMISS</span><br><span class="line">menu = VMISS</span><br><span class="line">title = VMISS US-CMIN2</span><br><span class="line">host= 10.10.16.2</span><br><span class="line"></span><br><span class="line">++BWH</span><br><span class="line">menu = BWH</span><br><span class="line">title = BWH US-CN2-GIA</span><br><span class="line">host= 10.10.19.2</span><br><span class="line"></span><br><span class="line">++Hostyun</span><br><span class="line">menu = Hostyun</span><br><span class="line">title = Hostyun HK-CMI</span><br><span class="line">host= 10.10.18.2</span><br><span class="line"></span><br><span class="line">++Claw</span><br><span class="line">menu = Claw</span><br><span class="line">title = Claw HK-ali</span><br><span class="line">host= 10.10.17.2</span><br></pre></td></tr></table></figure>
+
+<p>Edit <code>/etc/smokeping/config.d/General</code> to set <code>cgiurl</code> to <code>http://YOUR_IP_OR_DOMAIN/smokeping/smokeping.cgi</code></p>
+<p>You the default rate of sending pings are 20 pings in 300s. You can set this by editing <code>/etc/smokeping/config.d/Database</code>, and change the following numbers according to your need:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">step = 300</span><br><span class="line">pings = 20</span><br></pre></td></tr></table></figure>
+
+<p>In alerts, you can configure smokeping to send you notifications when certain incidents happen, refer to <a target="_blank" rel="noopener" href="https://oss.oetiker.ch/smokeping/doc/smokeping_config.en.html#___top">smokeping config</a> for details and usage.</p>
+<p>After editing this file, run <code>smokeing --debug</code> to see if there’s error in the configuration.</p>
+<p>Next step is to create a service to let smokeping run peacefully in the background. When installed via the command above in the installation section, a service will automatically created, all you need to do is to run</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">systemctl <span class="built_in">enable</span> smokeping &amp;&amp; systemctl start smokeping`</span><br></pre></td></tr></table></figure>
+
+<h3 id="fcgiwrap"><a href="#fcgiwrap" class="headerlink" title="fcgiwrap"></a>fcgiwrap</h3><p>After installing fcgiwrap, only copy the default config is enough: <code>cp /usr/share/doc/fcgiwrap/examples/nginx.conf /etc/nginx/fcgiwrap.conf</code>.</p>
+<h3 id="nginx"><a href="#nginx" class="headerlink" title="nginx"></a>nginx</h3><p>After installing nginx:</p>
+<ol>
+<li>Delete the default site, as recommended.</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">rm</span> /etc/nginx/sites-enabled/default</span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>Create a <code>no-site</code> website, which answers wrong requests destined for the host.<br>Edit <code>/etc/nginx/sites-available/no-site</code>, and put the following lines in it.</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">server&#123;</span><br><span class="line">  listen 80 default_server deferred;</span><br><span class="line">  listen [::]:80 default_server deferred;</span><br><span class="line">  server_name _;</span><br><span class="line"></span><br><span class="line">  return 444;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol start="3">
+<li><p>Save it.</p>
+</li>
+<li><p>The next step is to create a site configuration for SmokePing. Edit <code>/etc/nginx/sites-available/smokeping</code>:</p>
+</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line">server &#123;</span><br><span class="line">     listen 80;</span><br><span class="line">     listen [::]:80;</span><br><span class="line">     server_name YOUR_IP_OR_DOMAIN;</span><br><span class="line"></span><br><span class="line">     location = /smokeping/smokeping.cgi &#123;</span><br><span class="line">             fastcgi_intercept_errors on;</span><br><span class="line"></span><br><span class="line">             fastcgi_param   SCRIPT_FILENAME         /usr/lib/cgi-bin/smokeping.cgi;</span><br><span class="line">             fastcgi_param   QUERY_STRING            $query_string;</span><br><span class="line">             fastcgi_param   REQUEST_METHOD          $request_method;</span><br><span class="line">             fastcgi_param   CONTENT_TYPE            $content_type;</span><br><span class="line">             fastcgi_param   CONTENT_LENGTH          $content_length;</span><br><span class="line">             fastcgi_param   REQUEST_URI             $request_uri;</span><br><span class="line">             fastcgi_param   DOCUMENT_URI            $document_uri;</span><br><span class="line">             fastcgi_param   DOCUMENT_ROOT           $document_root;</span><br><span class="line">             fastcgi_param   SERVER_PROTOCOL         $server_protocol;</span><br><span class="line">             fastcgi_param   GATEWAY_INTERFACE       CGI/1.1;</span><br><span class="line">             fastcgi_param   SERVER_SOFTWARE         nginx/$nginx_version;</span><br><span class="line">             fastcgi_param   REMOTE_ADDR             $remote_addr;</span><br><span class="line">             fastcgi_param   REMOTE_PORT             $remote_port;</span><br><span class="line">             fastcgi_param   SERVER_ADDR             $server_addr;</span><br><span class="line">             fastcgi_param   SERVER_PORT             $server_port;</span><br><span class="line">             fastcgi_param   SERVER_NAME             $server_name;</span><br><span class="line">             fastcgi_param   HTTPS                   $https if_not_empty;</span><br><span class="line"></span><br><span class="line">             fastcgi_pass unix:/var/run/fcgiwrap.socket;</span><br><span class="line">     &#125;</span><br><span class="line"></span><br><span class="line">     location ^~ /smokeping/ &#123;</span><br><span class="line">             alias /usr/share/smokeping/www/;</span><br><span class="line">             index smokeping.cgi;</span><br><span class="line">             gzip off;</span><br><span class="line">     &#125;</span><br><span class="line"></span><br><span class="line">     location / &#123;</span><br><span class="line">             return 301 http://$server_name/smokeping/smokeping.cgi;</span><br><span class="line">     &#125;</span><br><span class="line"> &#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<ol start="5">
+<li>Then links these two sites to nginx default configuration folder:</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">ln</span> -s /etc/nginx/sites-available/smokeping /etc/nginx/sites-enabled/smokeping</span><br><span class="line"><span class="built_in">ln</span> -s /etc/nginx/sites-available/no-site /etc/nginx/sites-enabled/no-site</span><br></pre></td></tr></table></figure>
+
+<ol start="6">
+<li>Test nginx syntax and restart the service.</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">nginx -t </span><br><span class="line">systemctl restart nginx</span><br></pre></td></tr></table></figure>
+
+<h2 id="Run-and-Test"><a href="#Run-and-Test" class="headerlink" title="Run and Test"></a>Run and Test</h2><p>Now you will be able to see the information via a web interface, type <code>http://YOUR_IP_OR_DOMAIN/smokeping/smokeping.cgi</code>, and you will be able to see the statistics for all the servers you set to monitor earlier in <em>Targets</em>.</p>
+<h2 id="Problems-I-had"><a href="#Problems-I-had" class="headerlink" title="Problems I had"></a>Problems I had</h2><ol>
+<li>Linux acl issue.</li>
+</ol>
+<p>I restarted the service, which caused the database file from RRDTool is not accessible, I then deleted them as showed in error messages but it was not re-generated automatically. I had to run</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">smokeping --debug </span><br></pre></td></tr></table></figure>
+
+<p>again to trigger the re-generation of related database files. Another problem occurred after this as I’m using root, but the automatically configured <em>smokeping.service</em> is set to run as <em>smokeping:smokeping</em>, therefore, make sure to give <em>rw</em> access to those files. They are located at <code>/var/lib/smokeping/Servers/</code>.</p>
+<p>This happened because I had this bad habit of using <code>systemctl restart</code>. Therefore, when configuration is changed, use <code>systemctl reload smokeping</code>.</p>
+<h2 id="Conclusion"><a href="#Conclusion" class="headerlink" title="Conclusion"></a>Conclusion</h2><p>The process itself is fairly simple, but it may look complicated because it involves manually configure different parts to work together unlike uptime-kuma, which provides an integrated command line that allows you to run it with simple commands or just by clicking few buttons.</p>
+<p>It’s working good and I really like the statistics.</p>
+<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://docs.vultr.com/monitor-latency-with-smokeping-on-ubuntu-20-04">SmokePing with Nginx</a></li>
+<li><a target="_blank" rel="noopener" href="https://oss.oetiker.ch/smokeping/doc/smokeping_config.en.html#___top">SmokePing</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/networking/" rel="tag"># networking</a>
+              <a href="/tags/server/" rel="tag"># server</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/networking/routeros/RouterOS%E5%88%A9%E7%94%A8OSPF%E5%88%86%E6%B5%81/" rel="prev" title="RouterOS利用OSPF分流">
+                  <i class="fa fa-angle-left"></i> RouterOS利用OSPF分流
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2024</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Ian</span>
+  </div><script color="0,0,255" opacity="0.5" zIndex="-1" count="99" src="https://cdn.jsdelivr.net/npm/canvas-nest.js@1/dist/canvas-nest.js"></script>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/hexo-theme-next@8.21.0/source/js/comments.min.js"></script><script src="https://cdn.jsdelivr.net/npm/hexo-theme-next@8.21.0/source/js/utils.min.js"></script><script src="https://cdn.jsdelivr.net/npm/hexo-theme-next@8.21.0/source/js/motion.min.js"></script><script src="https://cdn.jsdelivr.net/npm/hexo-theme-next@8.21.0/source/js/sidebar.min.js"></script><script src="https://cdn.jsdelivr.net/npm/hexo-theme-next@8.21.0/source/js/next-boot.min.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>
